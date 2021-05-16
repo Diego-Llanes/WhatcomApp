@@ -1,0 +1,4 @@
+service,name of provider,time,days,men,women,youth,families,pets
+shelter,Example Sheter A,12:00-16:00,mtwtf,yes,yes,yes,yes,no
+shelter,Example Shelter B,12:00-16:00,mtwtf,no,yes,yes,no,no
+foodbank,Example Foodbank A, 08:00-12:00, smtwtfs,yes,yes,yes,yes,no

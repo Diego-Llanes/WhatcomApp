@@ -1,6 +1,9 @@
-To get the server running, install nodejs software from online. Install the express module in using the npm package manual. To do that, do "npm install express". Put servicesServer.js and servicesCSV.txt into the same folder. 
+To get the server running, install nodejs software from online. Install the express module in using the npm package manager. 
+To do that, enter "npm install express" in the command line. Put servicesServer.js and servicesCSV.txt into the same folder. 
 
-Run servicesServer.js in command line with the "node servicesServer.js"command.That will make your computer a lan webserver. Then go to a browser and go to localhost:80000/services to see the data. You can filter the data more by adding argumentsto the URL based on what's in the csv file. 
+Run servicesServer.js in command line with the "node servicesServer.js"command.That will make your computer a lan webserver. 
+Then go to a browser and go to localhost:80000/services to see the data. 
+You can filter the data more by adding argumentsto the URL based on what's in the csv file. 
 
 Example:
 

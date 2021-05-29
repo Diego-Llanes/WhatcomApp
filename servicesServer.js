@@ -17,7 +17,7 @@ let filePaths = fs.readdirSync('./CSVs/'); //List of all files in ./CSVs/ file p
 
 function csvToJSON(fileName){
     let serviceObj = {} //Object to be returned 
-    let serviceObjKey = 0; //Index for object
+    let serviceObjKey = ''; //Index for object
 
     //load data from file
     csv = fs.readFileSync('./CSVs/' + fileName); 
@@ -29,11 +29,11 @@ function csvToJSON(fileName){
     for(i=1; i<dataArray.length-1; i++){ 
         let obj = {}; 
         let line = dataArray[i].split(',') //CSV line split into an array by comma
+        serviceObjKey = line[0];
         for(j=0; j<line.length; j++){
             obj[header[j]] = line[j]; //CSV element mapped to its header
         }
         serviceObj[serviceObjKey] = obj;
-        serviceObjKey++;
     }
     return serviceObj //returned JSON object
 }

@@ -7,78 +7,84 @@
 
 // Imported Modules//
 const fs = require('fs');
-const readline = require('readline'); 
 const express = require('express'); 
 
-
 //Data Variable//
-let serviceData = [];  //Array of service objects
-
+let serviceData = {};  //Object that will hold of service objects
 
 //CSV File I/O: Load from data from CSV file to an array of objects. To do: Save object array to CSV file.// 
-let fileHeader = []; //Stores csv header data from csv file to use as key values in service objects. 
+let filePaths = fs.readdirSync('./CSVs/'); //List of all files in ./CSVs/ file path
 
-const readLineInterface = readline.createInterface( //Interface for streaming file input line by line. 
-    {input: fs.createReadStream('servicesCSV.txt')});
+function csvToJSON(fileName){
+    let serviceObj = {} //Object to be returned 
+    let serviceObjKey = 0; //Index for object
 
-//Extracts header data from CSV file and saves to array. 
-function getCSVHeader(line){ 
-    let keyArray = line.split(',')
-    keyArray.forEach(key => {
-        fileHeader.push(key);
-    });
-    readLineInterface.pause() //Stops readLineInterface processing lines after the header using this method. 
+    //load data from file
+    csv = fs.readFileSync('./CSVs/' + fileName); 
+    csv = csv.toString().replace(/\r/g, ''); // removes \r tags from file
+    let dataArray = csv.toString().split('\n'); //file divided by line and placed in array
+
+    //Convert data to JSON object
+    let header = dataArray[0].split(','); //csv file header
+    for(i=1; i<dataArray.length-1; i++){ 
+        let obj = {}; 
+        let line = dataArray[i].split(',') //CSV line split into an array by comma
+        for(j=0; j<line.length; j++){
+            obj[header[j]] = line[j]; //CSV element mapped to its header
+        }
+        serviceObj[serviceObjKey] = obj;
+        serviceObjKey++;
+    }
+    return serviceObj //returned JSON object
 }
 
-// Extracts lines after csv header and saves them as service objects in serviceData array.  
-// BUG: csvToObj reads the header again. It shouldn't. 
-function csvToObj(line){
-    readLineInterface.resume(); //Need to resume readLineInterface paused in getCSVHeader. 
-    
-    let serviceObj = {}; 
-    let lineArray = line.split(','); 
+filePaths.forEach(file => { //Load all CSV files and add JSON objects to serviceData. 
+    let fileName = file.split('.')[0];
+    serviceData[fileName] = csvToJSON(file);
+});
 
-    i = 0; //incrementer for fileHeader array in foreach loop
-    lineArray.forEach(value => {
-        serviceObj[fileHeader[i]] = value; //add key-value pair to Service object. 
-        i++; 
-    });
-    serviceData.push(serviceObj); //Add service object to array of service objects
-}
-
-readLineInterface.on('line', getCSVHeader);
-readLineInterface.on('line', csvToObj); 
-
-
-//Express Server: Set express server to listen. Handles in coming requests.// 
+//Express Server: Set express server to listen. Handles incoming requests.// 
 
 const app = express();
 const port = 8000; //port server should listen on
 
-//Request handling
-app.get('/services', (req, res) => {
-    console.log(`Incoming request from: ${req.socket.remoteAddress}`); //log start of request in terminal 
-    console.log(serviceData);
-    const requestKeys = Object.keys(req.query); //Array of keys from the sent request object. 
-    let availableServices = []; //Array to send back to requester. 
+//List all services 
+app.get('/listOfServices', (req, res) => {
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /listOfServices`); //log start of request in terminal 
 
-    for(i=0; i< serviceData.length; i++){ //iterate through service objects
-        let addService = true; //service availible by default
+    let resObj = {}; 
+    let servicesList = Object.keys(serviceData);
+    resObj['Services'] = servicesList .join(', '); 
 
-        requestKeys.forEach(key => { 
-            if(req.query[key] != serviceData[i][key]){  //See if shared request and service key have same value.
-                addService = false; //Set service not to be added if service incompatible with request
-            }
-        })
+    res.send(resObj);
 
-        if(addService){  //Add service to array to be sent to requester if service compatible. 
-            availableServices.push(serviceData[i]);
-        }
-    }
-    
-    res.send(availableServices); //Responding with an array that has an object for each availible service 
     console.log(`Request from ${req.socket.remoteAddress} resolved`); //Log end of request in terminal 
 });  
+
+//Get data from a specific service or all services
+app.get('/service/:serviceKey', (req, res) => {
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /service/`); //log start of request in terminal 
+
+    let serviceRequested = req.params.serviceKey; 
+    let servicesList = Object.keys(serviceData); 
+
+    if(servicesList.indexOf(serviceRequested) == -1){ //if service not found, send error code
+        res.status(400).send(); 
+    } else {
+        res.send(serviceData[serviceRequested]); //return object for specific service
+    }
+
+    console.log(`Request from ${req.socket.remoteAddress} resolved`); //Log end of request in terminal 
+}); 
+
+app.get('/services', (req, res) => {
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /services`); //log start of request in terminal
+
+    res.send(serviceData);
+
+    console.log(`Request from ${req.socket.remoteAddress} resolved`); //Log end of request in terminal 
+});
+
 
 //Set server to start listening
 app.listen(port, ()=>{

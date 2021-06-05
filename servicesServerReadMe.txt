@@ -20,7 +20,7 @@ Description: Choose a service from the listOfServices and you'll get back data f
 Sent: localhost:8000/service/FoodBanks
 
 Returned: 
-{"0":{"Name":"Bellingham Food Bank (main)","Address":"1824 Ellis St Bellingham","Phone Number":"360-676-0392","E-mail address":"info@bellinghamfoodbank.org","Website":"https://www.bellinghamfoodbank.org/covid-19-home/","Days":"m w f","weeks":"","Hours":"mon and fri 11 am-3 pm wed 1-6 pm","Registration required":"N","Visits allowed":"2 per week"}}
+{"Bellingham Food Bank (main)":{"Name":"Bellingham Food Bank (main)","Address":"1824 Ellis St Bellingham","Phone Number":"360-676-0392","E-mail address":"info@bellinghamfoodbank.org","Website":"https://www.bellinghamfoodbank.org/covid-19-home/","Days":"m w f","weeks":"","Hours":"mon and fri 11 am-3 pm wed 1-6 pm","Registration required":"N","Visits allowed":"2 per week"}}
 
 
 

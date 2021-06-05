@@ -90,7 +90,10 @@ function insertionSort(array){
 //Express Server: Set express server to listen. Handles incoming requests.// 
 
 const app = express();
-const port = 80; //port server should listen on
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 8000; //Port for Heroku
+}
 
 //List all service types
 app.get('/typesOfService', (req, res) => {
@@ -178,7 +181,6 @@ app.get('/servicesInRange', (req, res) => {
 
     console.log(`Incoming request from: ${req.socket.remoteAddress} for /servicesInRange`); 
 });
-
 
 //Set server to start listening
 app.listen(port, ()=>{

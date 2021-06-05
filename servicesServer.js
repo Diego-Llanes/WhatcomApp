@@ -16,54 +16,98 @@ let serviceData = {};  //Object that will hold of service objects
 let filePaths = fs.readdirSync('./CSVs/'); //List of all files in ./CSVs/ file path
 
 function csvToJSON(fileName){
-    let serviceObj = {} //Object to be returned 
+    let serviceObj = {} //Object that will have an object for each CSV line
     let serviceObjKey = ''; //Index for object
 
     //load data from file
     csv = fs.readFileSync('./CSVs/' + fileName); 
-    csv = csv.toString().replace(/\r/g, ''); // removes \r tags from file
-    let dataArray = csv.toString().split('\n'); //file divided by line and placed in array
+    csv = csv.toString().replace(/\r/g, ''); // removes \r tags from data
+    let dataArray = csv.toString().split('\n'); 
 
     //Convert data to JSON object
     let header = dataArray[0].split(','); //csv file header
-    for(i=1; i<dataArray.length-1; i++){ 
+    for(i=1; i<dataArray.length-1; i++){ //Starts at 1 to skip header
         let obj = {}; 
-        let line = dataArray[i].split(',') //CSV line split into an array by comma
-        serviceObjKey = line[0];
+        let line = dataArray[i].split(',') 
+        serviceObjKey = line[0]; //Set key as first element in line (which should be name)
         for(j=0; j<line.length; j++){
             obj[header[j]] = line[j]; //CSV element mapped to its header
         }
-        serviceObj[serviceObjKey] = obj;
+        serviceObj[serviceObjKey] = obj; 
     }
     return serviceObj //returned JSON object
 }
 
-filePaths.forEach(file => { //Load all CSV files and add JSON objects to serviceData. 
-    let fileName = file.split('.')[0];
-    serviceData[fileName] = csvToJSON(file);
+//Load all CSV files and add to serviceData. 
+filePaths.forEach(file => { 
+    fileSplit = file.split('.'); 
+    let fileName = fileSplit[0];
+    if(fileSplit[1] == 'csv'){ //Check file extension
+        serviceData[fileName] = csvToJSON(file);
+    } 
 });
+
+//Distance Calculation and Sorting Methods//
+
+// Note: Haversine's formula calculates the distance between two points on a sphere. 
+//       Can give a loose estimate for distance between two coordiantes. 
+/* Distance between two lat/lng coordinates in km using the Haversine formula */  
+function getDistanceFromLatLng(lat1, lng1, lat2, lng2, miles) { // miles optional
+    if (typeof miles === "undefined"){miles=false;}
+    function deg2rad(deg){return deg * (Math.PI/180);}
+    function square(x){return Math.pow(x, 2);}
+    var r=6371; // radius of the earth in km
+    lat1=deg2rad(lat1);
+    lat2=deg2rad(lat2);
+    var lat_dif=lat2-lat1;
+    var lng_dif=deg2rad(lng2-lng1);
+    var a=square(Math.sin(lat_dif/2))+Math.cos(lat1)*Math.cos(lat2)*square(Math.sin(lng_dif/2));
+    var d=2*r*Math.asin(Math.sqrt(a));
+    if (miles){return d * 0.621371;} //return miles
+    else{return d;} //return km
+  }
+  /* Copyright 2016, Chris Youderian, SimpleMaps, http://simplemaps.com/resources/location-distance
+   Released under MIT license - https://opensource.org/licenses/MIT */ 
+
+//Algorithm that will be used to sort distances. A modification of an insertion sort I found online. 
+//Will switch this to my own implementation of a merge or pivot sort this weekend. 
+function insertionSort(array){
+    for(let i=1; i<array.length; i++){
+        for( let j=i; j>0; j-- ){
+            if(array[j][1] < array[j-1][1]){
+                let temp = array[j];
+                array[j] = array[j-1];
+                array[j-1] = temp; 
+            }else{
+                break;
+            }
+        }
+    }
+    return array; 
+}
+
 
 //Express Server: Set express server to listen. Handles incoming requests.// 
 
 const app = express();
-const port = 8000; //port server should listen on
+const port = 80; //port server should listen on
 
-//List all services 
-app.get('/listOfServices', (req, res) => {
+//List all service types
+app.get('/typesOfService', (req, res) => {
     console.log(`Incoming request from: ${req.socket.remoteAddress} for /listOfServices`); //log start of request in terminal 
 
     let resObj = {}; 
     let servicesList = Object.keys(serviceData);
-    resObj['Services'] = servicesList .join(', '); 
+    resObj['Service Types'] = servicesList .join(', '); 
 
     res.send(resObj);
 
     console.log(`Request from ${req.socket.remoteAddress} resolved`); //Log end of request in terminal 
 });  
 
-//Get data from a specific service or all services
+//Get data from a specific service type
 app.get('/service/:serviceKey', (req, res) => {
-    console.log(`Incoming request from: ${req.socket.remoteAddress} for /service/`); //log start of request in terminal 
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /service/`); 
 
     let serviceRequested = req.params.serviceKey; 
     let servicesList = Object.keys(serviceData); 
@@ -74,15 +118,65 @@ app.get('/service/:serviceKey', (req, res) => {
         res.send(serviceData[serviceRequested]); //return object for specific service
     }
 
-    console.log(`Request from ${req.socket.remoteAddress} resolved`); //Log end of request in terminal 
+    console.log(`Request from ${req.socket.remoteAddress} resolved`); 
 }); 
 
+//Get data from all services
 app.get('/services', (req, res) => {
-    console.log(`Incoming request from: ${req.socket.remoteAddress} for /services`); //log start of request in terminal
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /services`); 
 
     res.send(serviceData);
 
-    console.log(`Request from ${req.socket.remoteAddress} resolved`); //Log end of request in terminal 
+    console.log(`Request from ${req.socket.remoteAddress} resolved`); 
+});
+
+//Get services within a certain range of the user and sort by distance. 
+//Note: Default max range is 5 miles if not specificed. 
+app.get('/servicesInRange', (req, res) => {
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /servicesInRange`); 
+
+    //JSON to be returned
+    let returnedServices = {}; 
+
+    //Request paramaters
+    const lat = req.query.lat; 
+    const lon = req.query.lon;
+    const range = req.query.range; //Maximum range from user 
+
+    //Filtering servicesData by distance and returning copy of it//
+    const serviceDataKeys = Object.keys(serviceData); 
+    serviceDataKeys.forEach(serviceType => {
+        returnedServices[serviceType] = {}; //Listing service type in returned JSON. 
+        const serviceKeys = Object.keys(serviceData[serviceType]);
+        let distanceArray = []; //Array to sort services and their distance from user.  
+
+        //Calculating distances
+        serviceKeys.forEach(service => {
+            const coordinates = serviceData[serviceType][service]['coordinates'].split(' ');
+            const latDestination = coordinates[0];
+            const lonDestination = coordinates[1];
+            const distance = getDistanceFromLatLng(lat, lon, latDestination, lonDestination, "miles");
+            if(distance <= range){ //Filtering services by distance
+                distanceArray.push([service, distance]); 
+            }
+        });
+
+        //Sort distance array 
+        distanceArray = insertionSort(distanceArray); 
+
+        //Store services in returned JSON in distance order
+        distanceArray.forEach( distanceArray => {
+            const serviceName = distanceArray[0];
+            const serviceDistance = distanceArray[1];
+            let serviceObj = JSON.parse(JSON.stringify(serviceData[serviceType][serviceName])); //Create copy of service obj
+            serviceObj['estimated distance'] = serviceDistance.toString().substring(0,3); 
+            returnedServices[serviceType][serviceName] = serviceObj;
+        });
+    });
+
+    res.send(returnedServices);
+
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /servicesInRange`); 
 });
 
 

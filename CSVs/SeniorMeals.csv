@@ -1,8 +1,8 @@
-name,location,days,phone,email,website,additional notes
-Bellingham Senior Center,315 Halleck Street Bellingham WA 98225,w,360- 733-4030,,https://whatcomcoa.org/bellingham-senior-activity-center/,1 Fresh meal 6 frozen meals
-Blaine Senior Center,763 G Street Blaine WA 98230,w,360-332-8040,,https://www.blaineseniorcenter.com/,1 Fresh meal 6 frozen meals
-Everson Senior Center,Everson City Hall 111 West Main Street Everson WA 98247,m,360-966-3144,,http://www.whatcomcounty.us/facilities/facility/details/eversonsenioractivitycenter-87,1 Fresh meal 6 frozen meals
-Ferndale Senior Center,1998 Cherry Street Ferndale WA 98248,w,360-384-5113,,https://www.ferndaleseniorcenter.org/,1 Fresh meal 6 frozen meals
-Lynden Senior Center,Lynden Community/ Senior Center 401 Grover St. Lynden WA 98264 USA,m tu w th f,360-354-2921,,https://www.lyndencommunitycenter.org/,Must call in advance
-Point Roberts Senior Center,1487 Gulf Rd Point Roberts WA 98281,w f,360-945-5424,,http://www.allpointbulletin.com/,Must call in advance
-Sumas Senior Center,461 2nd St Sumas WA 98295,m,360-988-2714,,http://www.whatcomcounty.us/facilities/facility/details/sumassenioractivitycenter-91,1 Fresh meal 6 frozen meals
+name,location,coordinates,days,phone,email,website,additional notes
+Bellingham Senior Center,315 Halleck Street Bellingham WA 98225,48.75590026122729 -122.47671191745297,w,360- 733-4030,,https://whatcomcoa.org/bellingham-senior-activity-center/,1 Fresh meal 6 frozen meals
+Blaine Senior Center,763 G Street Blaine WA 98230,48.994711968865644 -122.74080683266124,w,360-332-8040,,https://www.blaineseniorcenter.com/,1 Fresh meal 6 frozen meals
+Everson Senior Center,Everson City Hall 111 West Main Street Everson WA 98247,48.91999586895007 -122.34385686338803,m,360-966-3144,,http://www.whatcomcounty.us/facilities/facility/details/eversonsenioractivitycenter-87,1 Fresh meal 6 frozen meals
+Ferndale Senior Center,1998 Cherry Street Ferndale WA 98248,48.843639925351326 -122.59159876343094,w,360-384-5113,,https://www.ferndaleseniorcenter.org/,1 Fresh meal 6 frozen meals
+Lynden Senior Center,Lynden Community/ Senior Center 401 Grover St. Lynden WA 98264 USA,48.94380048203784 -122.45287011734733,m tu w th f,360-354-2921,,https://www.lyndencommunitycenter.org/,Must call in advance
+Point Roberts Senior Center,1487 Gulf Rd Point Roberts WA 98281,48.98438070503004 -123.07679764800935,w f,360-945-5424,,http://www.allpointbulletin.com/,Must call in advance
+Sumas Senior Center,461 2nd St Sumas WA 98295,48.99799495663896 -122.25953401731681,m,360-988-2714,,http://www.whatcomcounty.us/facilities/facility/details/sumassenioractivitycenter-91,1 Fresh meal 6 frozen meals

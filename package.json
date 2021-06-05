@@ -1,5 +1,5 @@
 {
-  "name": "WhatcomServices",
+  "name": "WhatcomApp",
   "version": "1.0.0",
   "description": "",
   "main": "servicesServer.js",
@@ -8,12 +8,12 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node servicesServer.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": "12.6.1"
+    "node": "12.16.1"
   }
 }

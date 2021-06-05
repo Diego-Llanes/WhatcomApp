@@ -1,3 +1,6 @@
+If hosted locally use localhost:8000/services
+If using online version use https://radiant-dawn-48071.herokuapp.com/services
+
 To get the server running, install nodejs software from online. Install the express module in using the npm package manual. To do that, navigate to the directory you have the files in (using the CD command) and run the "npm install express". 
 
 Run servicesServer.js in command line with the "node servicesServer.js"command.That will make your computer a lan webserver. Then go to a browser and go to http://<your-ip>/services to see the data. 
@@ -14,11 +17,12 @@ Description: Returns all services within a set distance of miles of the user. Al
 E.G.: Services within 5 miles of Whatcom Community College 
 http://http://10.0.0.25/servicesInRange?lat=48.795870011581115&lon=-122.49594423558223&range=5
 
+range is maximum number of miles a service can be from the user in miles.
 
 URL: http://<your-ip>/typesOfService
 Description: Provides a list of services availible on the server. The service names are based on the CSV file names in the CSVs folder. You an add and remove CSVs and this will be updated automatically. 
 
-Sent: http://<your-ip>/listOfService
+Sent: http://<your-ip>/typesOfService
 
 
 returned: {"Services":"CommunityMeals, FoodBanks, SeniorMeals"}

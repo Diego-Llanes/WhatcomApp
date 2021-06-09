@@ -69,21 +69,96 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2, miles) { // miles optiona
   /* Copyright 2016, Chris Youderian, SimpleMaps, http://simplemaps.com/resources/location-distance
    Released under MIT license - https://opensource.org/licenses/MIT */ 
 
-//Algorithm that will be used to sort distances. A modification of an insertion sort I found online. 
-//Will switch this to my own implementation of a merge or pivot sort this weekend. 
-function insertionSort(array){
-    for(let i=1; i<array.length; i++){
-        for( let j=i; j>0; j-- ){
-            if(array[j][1] < array[j-1][1]){
-                let temp = array[j];
-                array[j] = array[j-1];
-                array[j-1] = temp; 
-            }else{
-                break;
+//Merge sort algorithm by Jake//  
+
+function merge(array, left, middle, right)
+{
+    var new1 = middle - left + 1;
+    var new2 = right - middle;
+
+    var leftArray = new Array(new1);
+    var rightArray = new Array(new2);
+
+    for (var i = 0; i < new1; i++) {
+        leftArray[i] = array[left + i];
+    }
+    for (var j = 0; j < new2; j++){
+        rightArray[j] = array[middle + 1 + j];
+    }
+
+    var first = 0;
+    var second = 0;
+    var merge = left;
+
+    while (first < new1 && second < new2) {
+        if (leftArray[first] <= rightArray[second]) {
+            array[merge] = leftArray[first];
+            first++;
+        }
+        else {
+            array[merge] = rightArray[second];
+            second++;
+        }
+        merge++;
+    }
+    while (first < new1) {
+        array[merge] = leftArray[first];
+        first++;
+        merge++;
+    }
+    while (second < new2) {
+        array[merge] = rightArray[second];
+        second++;
+        merge++;
+    }
+}
+
+function mergeSort(startArray,left, right){
+    if(left>=right ){
+        return;
+    }
+    var middle=left+ parseInt((right-left)/2);
+    mergeSort(startArray,left,middle);
+    mergeSort(startArray,middle+1,right);
+    merge(startArray,left,middle,right);
+}
+
+function removeName(array) {
+    var arrayChopped = [];
+    for(var i = 0; i < array.length; i++){
+        arrayChopped[i]=array[i][1];
+    }
+    return arrayChopped;
+}
+
+function matchNames(array, chop){
+    var matched = Array.from(Array(chop.length), () => new Array(2));
+    for(var i = 0; i < chop.length; i++){
+        for(var j = 0; j < chop.length; j++){
+            if(array[i][1]==chop[j]){
+                matched[j][0] = array[i][0];
+                matched[j][1] = chop[j];
+                array[i][1]=null;
             }
         }
     }
-    return array; 
+    return matched;
+}
+
+function removeName(array) {
+    var arrayChopped = [];
+    for(var i = 0; i < array.length; i++){
+        arrayChopped[i]=array[i][1];
+    }
+    return arrayChopped;
+}
+
+function sortArray(array){
+
+    var chopped = removeName(array);
+    mergeSort(chopped, 0, chopped.length - 1);
+    var matched = matchNames(array,chopped);
+    return matched;
 }
 
 
@@ -101,8 +176,12 @@ app.get('/typesOfService', (req, res) => {
 
     let resObj = {}; 
     let servicesList = Object.keys(serviceData);
-    resObj['Service Types'] = servicesList .join(', '); 
-
+    let i = 0;
+    servicesList.forEach(type =>{
+        resObj[i] = type;
+        i++;
+    }); 
+    
     res.send(resObj);
 
     console.log(`Request from ${req.socket.remoteAddress} resolved`); //Log end of request in terminal 
@@ -165,7 +244,8 @@ app.get('/servicesInRange', (req, res) => {
         });
 
         //Sort distance array 
-        distanceArray = insertionSort(distanceArray); 
+        distanceArray = sortArray(distanceArray); 
+        
 
         //Store services in returned JSON in distance order
         distanceArray.forEach( distanceArray => {
@@ -181,9 +261,58 @@ app.get('/servicesInRange', (req, res) => {
 
     console.log(`Incoming request from: ${req.socket.remoteAddress} for /servicesInRange`); 
 });
+//Get services within a certain range of the user and sort by distance.  
+    app.get('/serviceInRange/:serviceType', (req, res) => {
+
+    let serviceType = req.params.serviceType; //Service type listed in URI
+    
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /serviceInRange/${serviceType}`); 
+
+    //JSON to be returned
+    let returnedServices = {}; 
+    
+
+    //Request paramaters
+    const lat = req.query.lat; 
+    const lon = req.query.lon;
+    const range = req.query.range; //Maximum range from user 
+
+     //Filtering servicesData by distance and returning copy of it//
+    returnedServices = {}; //Listing service type in returned JSON. 
+    const serviceKeys = Object.keys(serviceData[serviceType]);
+    let distanceArray = []; //Array to sort services and their distance from user.  
+
+    //Calculating distances
+    serviceKeys.forEach(service => {
+        const coordinates = serviceData[serviceType][service]['coordinates'].split(' ');
+        const latDestination = coordinates[0];
+        const lonDestination = coordinates[1];
+        const distance = getDistanceFromLatLng(lat, lon, latDestination, lonDestination, "miles");
+        if(distance <= range){ //Filtering services by distance
+            distanceArray.push([service, distance]); 
+        }
+    });
+
+    //Sort distance array 
+    distanceArray = sortArray(distanceArray); 
+    console.log(distanceArray)
+
+    //Store services in returned JSON in distance order
+    distanceArray.forEach( distanceArray => {
+        const serviceName = distanceArray[0];
+        const serviceDistance = distanceArray[1];
+        let serviceObj = JSON.parse(JSON.stringify(serviceData[serviceType][serviceName])); //Create copy of service obj
+        //serviceObj['estimated distance'] = serviceDistance.toString().substring(0,3); 
+        returnedServices[serviceName] = serviceObj;
+    });
+
+
+    res.send(returnedServices);
+
+    console.log(`Incoming request from: ${req.socket.remoteAddress} for /serviceInRange/${serviceType}`); 
+});
 
 //Set server to start listening
 app.listen(port, ()=>{
     console.log(`Server is listening on port ${port}.`);
 });
-
